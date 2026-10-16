@@ -83,9 +83,9 @@
             if (right == null) right = declaresEdge(c, "right") ? 0 : null;
             if (left == null || right == null) return;
             var width = designWidth - left - right;
-            if (width <= 0 || (left <= designWidth / 2 && right <= designWidth / 2)) return;
+            if (width <= 0 || (left < designWidth / 2 - 1 && right < designWidth / 2 - 1)) return;
             remember(c);
-            if (left > designWidth / 2) {
+            if (left >= designWidth / 2 - 1) {
                 s.setProperty("left", "auto");
                 c.setAttribute(MARK, "fixed-right");
             } else {
@@ -162,9 +162,9 @@
         return g;
     }
 
-    // Cheap pre-filter on the inline style text: only centre-anchored blocks and blocks with a fixed
-    // design width can change. Skips most elements before any getComputedStyle (the costly part).
-    var CANDIDATE = /-anchor:\s*50%|width:\s*calc\(var\(--unscaledScreenHeight\)/;
+    // Cheap pre-filter on the inline style text: only centre-anchored blocks, blocks with a fixed
+    // design width, and blocks sized by a right offset can change. Skips most elements before any getComputedStyle (the costly part).
+    var CANDIDATE = /-anchor:\s*50%|(width|right):\s*calc\(var\(--unscaledScreenHeight\)/;
 
     function process(el, ex, kk) {
         if (!CANDIDATE.test(el.getAttribute("style") || "")) { el.setAttribute(MARK, "-"); return true; }
@@ -226,8 +226,7 @@
     // a grown container instead of leaving a gap: width += container growth x (width / design width).
     function widen(el, ex, kk) {
         var s = el.style, cs = getComputedStyle(el);
-        var w = units(s.getPropertyValue("width"));
-        if (w == null || cs.position !== "absolute" || /%/.test(s.getPropertyValue("width"))) {
+        if (cs.position !== "absolute" || /%/.test(s.getPropertyValue("width"))) {
             el.setAttribute(MARK, "-");
             return true;
         }
@@ -236,8 +235,33 @@
         if (!r.width) return false;
         var cb = containingBlock(el), gx = growth(cb, "x", ex);
         var dw = rectOf(cb).width / kk - gx;
-        if (gx <= 1 || dw <= 0 || w < dw * WIDEN_MIN || w > dw * 0.98) {
-            if (pct(s.getPropertyValue("--v-anchor")) !== 0.5) el.setAttribute(MARK, "-");
+        var keepMark = pct(s.getPropertyValue("--v-anchor")) === 0.5;
+        if (gx <= 1 || dw <= 0) {
+            if (!keepMark) el.setAttribute(MARK, "-");
+            return true;
+        }
+        var w = units(s.getPropertyValue("width"));
+        var left = units(s.getPropertyValue("left")) || 0;
+
+        // Tied to both edges with one offset at or past the middle: it was sized for the stock container
+        // (e.g. right: 1180 in a 1770 frame = a 590 column). Keep that width.
+        if (w == null && declaresEdge(el, "right") && pct(s.getPropertyValue("--h-anchor")) === 0) {
+            var right = units(s.getPropertyValue("right")) || 0;
+            var fixed = dw - left - right;
+            if (fixed > 0 && (left >= dw / 2 - 1 || right >= dw / 2 - 1)) {
+                remember(el);
+                if (left >= dw / 2 - 1) { s.setProperty("left", "auto"); el.setAttribute(MARK, "fixed-right"); }
+                else { s.setProperty("right", "auto"); el.setAttribute(MARK, "fixed-left"); }
+                s.setProperty("width", u(fixed));
+                return true;
+            }
+        }
+
+        // Large fixed-width block: widen in proportion, but only in a mirrored layout (a partner
+        // anchored to the opposite edge, like From/To) and never when a sibling is placed right
+        // after it from the same edge or spans across it.
+        if (w == null || w < dw * WIDEN_MIN || w > dw * 0.98 || !mirrored(el, left, w)) {
+            if (!keepMark) el.setAttribute(MARK, "-");
             return true;
         }
         var add = gx * w / dw;
@@ -246,6 +270,28 @@
         el.setAttribute(MARK + "-gx", String(add));
         el.setAttribute(MARK, "widen");
         return true;
+    }
+
+    function mirrored(el, left, w) {
+        var side = pct(el.style.getPropertyValue("--h-anchor"));      // 0 = from left, 1 = from right
+        var mirror = false;
+        var sibs = el.parentElement ? el.parentElement.children : [];
+        for (var i = 0; i < sibs.length; i++) {
+            var sb = sibs[i];
+            if (sb === el || !sb.style || getComputedStyle(sb).position !== "absolute") continue;
+            var ss = sb.style, sh = pct(ss.getPropertyValue("--h-anchor"));
+            if (sh === 0.5) continue;                                    // centred (e.g. swap button)
+            var sw = units(ss.getPropertyValue("width"));
+            if (sw == null && declaresEdge(sb, "right")) return false;   // spans across
+            var sl = units(ss.getPropertyValue("left")) || 0;
+            if (sh === side) {
+                if (side === 0 && sl >= left + w - 2) return false;      // placed after it, same edge
+                if (side === 1 && sl <= left - w + 2) return false;
+            } else {
+                mirror = true;
+            }
+        }
+        return mirror;
     }
 
     // Document order is parents before children: a child's decision uses its parent's final size.
