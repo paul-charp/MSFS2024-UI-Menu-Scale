@@ -21,9 +21,9 @@ A denser layout alone would shrink every screen toward the centre: stock layouts
 
 Offsets are written in 1080p units, so they follow density changes. A MutationObserver applies this synchronously as pages mount, before the engine reads the layout.
 
-Each Coherent view is a separate JS context, so the mod hooks one always-mounted component per view (see `injections.json`): `MasterPage` (menus), `Shortcut` (Esc / Select key hints and popups: the notifications view is created at startup, before Community packages mount, so the hook must be a component it creates later), `Notification_Gameplay` (notifications), `Worldmap_Pin` (world map). Panel views (toolbar, mission steps) set their own viewport height and are left alone. `build` warns if another Community mod overrides one of these components.
+Each Coherent view is a separate JS context, so the mod hooks one always-mounted component per view (see `injections.json`): `TitlePage` (menus), `Shortcut` (Esc / Select key hints and popups: the notifications view is created at startup, before Community packages mount, so the hook must be a component it creates later), `Notification_Gameplay` (notifications), `Worldmap_Pin` (world map). Panel views (toolbar, mission steps) set their own viewport height and are left alone. `build` warns if another Community mod overrides one of these components.
 
-The script is loaded by a hidden `<img onerror>` appended to the cooked `MasterPage` component (`fs-base-ui/cookedcomps/{7DA60FBA-...}.html`), copied from your local sim install at build time. Asobo files are never stored in this repo.
+The script is loaded by a hidden `<img onerror>` appended to cooked components (e.g. `TitlePage`, `fs-base-ui/cookedcomps/{0CAE343C-...}.html`), copied from your local sim install at build time. Asobo files are never stored in this repo.
 
 ## Tuning
 
@@ -46,5 +46,6 @@ python tools/build.py install
 ## Limits
 
 - Re-anchoring is a heuristic over the stock layout; a page with an unusual structure may need an exception.
+- Mods that place elements with stylesheet rules in the stock centred frame need a compatibility rule (`COMPAT_CSS` in `reanchor.js`). Included: SimpleUI's favourites strip.
 - The toolbar, in-game panels and the EFB keep stock size.
-- Two mods overriding the same cooked component conflict. This one uses `MasterPage`, `Shortcut`, `Notification_Gameplay` and `Worldmap_Pin`; paul-fs24-ui uses `MenuBarPage`; //42 Flow uses `Startpage`, `HUD_*` and `Shortcutblock`.
+- Two mods overriding the same cooked component conflict. This one uses `TitlePage`, `Shortcut`, `Notification_Gameplay` and `Worldmap_Pin`; paul-fs24-ui uses `MenuBarPage`; SimpleUI uses `MasterPage`; //42 Flow uses `Startpage`, `HUD_*` and `Shortcutblock`.

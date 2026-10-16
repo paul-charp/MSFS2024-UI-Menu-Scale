@@ -1,12 +1,12 @@
 {
-  "_comment": "One hook per Coherent view: each view is its own JS context and needs hidpi.js loaded separately. A hook is a cooked component the view mounts AFTER Community packages are mounted (the notifications view is created at sim startup, so components it builds then come from the stock files): it gets a hidden <img onerror> that loads hidpi.js once per view. Panel views set their own viewportScreenHeight and are left alone. Avoid components other mods override (paul-fs24-lite: BlurPage, Panel_Header, Gauge_Circular; paul-fs24-ui: MenuBarPage; //42 Flow: Startpage, HUD_*, Shortcutblock).",
+  "_comment": "One hook per Coherent view: each view is its own JS context and needs hidpi.js loaded separately. A hook is a cooked component the view mounts AFTER Community packages are mounted (the notifications view is created at sim startup, so components it builds then come from the stock files): it gets a hidden <img onerror> that loads hidpi.js once per view. Panel views set their own viewportScreenHeight and are left alone. Avoid components other mods override (SimpleUI: MasterPage; paul-fs24-lite: BlurPage, Panel_Header, Gauge_Circular; paul-fs24-ui: MenuBarPage; //42 Flow: Startpage, HUD_*, Shortcutblock).",
   "injections": [
     {
       "kind": "cooked",
       "screen": "mainUi: menus",
       "package": "fs-base-ui",
-      "component": "MasterPage",
-      "guid": "7DA60FBA-EF32-48F2-974D-F8BEA35337A4",
+      "component": "TitlePage",
+      "guid": "0CAE343C-E00A-415D-8E53-9FB4686C8575",
       "boot": "/paul-fs24-hidpi/hidpi.js",
       "flag": "fs24hidpi_booted"
     },

@@ -343,6 +343,18 @@
         });
     }
 
+    // Other mods that place elements with stylesheet rules in the stock centred frame (inline styles
+    // are handled above). Each rule is the edge-anchored equivalent, identical at stock density.
+    //   SimpleUI favourites strip: left: 50% - 940, top: 50% - 194 (under the location search).
+    var COMPAT_CSS =
+        ".sui-fs{left:" + u(20) + " !important;top:" + u(540 - 194) + " !important}";
+    if (!document.querySelector("style[data-fs24hidpi-compat]")) {
+        var compat = document.createElement("style");
+        compat.setAttribute("data-fs24hidpi-compat", "");
+        compat.textContent = COMPAT_CSS;
+        document.head.appendChild(compat);
+    }
+
     if (window.fs24hidpiReanchor) {
         window.fs24hidpiReanchor.observer.disconnect();
         window.fs24hidpiReanchor.restore();
