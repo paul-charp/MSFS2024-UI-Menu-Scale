@@ -5,12 +5,17 @@
     python tools/build.py install     build, then junction build/<package> into the Community folder
     python tools/build.py uninstall   remove the Community junction
     python tools/build.py package     build, then zip it to dist/<package>-<version>.zip for release
+
+Paths to the sim's stock packages and Community folder are detected (MS Store and Steam installs);
+set them in config.local.json when detection fails (see config.local.example.json).
 """
 import argparse
 import hashlib
 import json
 import os
+import re
 import shutil
+import string
 import subprocess
 import sys
 import time
@@ -28,6 +33,7 @@ VANILLA_EXTS = {".html", ".css", ".js", ".json", ".svg", ".uxml", ".xml", ".ts"}
 VANILLA_DIRS = ["html_ui", "components", "cookedcomps"]
 MARK_BEGIN = "<!-- ui-menu-scale:begin -->"
 MARK_END = "<!-- ui-menu-scale:end -->"
+SIM = "Microsoft Flight Simulator 2024"
 # Seconds between 1601-01-01 (Windows FILETIME epoch) and 1970-01-01.
 FILETIME_EPOCH = 11644473600
 
@@ -42,6 +48,45 @@ def write_json(path, data):
 
 def sha256(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def detect_community():
+    """Community folder from the sim's UserCfg.opt (InstalledPackagesPath)."""
+    for cfg in (
+        Path(os.environ.get("LOCALAPPDATA", "")) / "Packages/Microsoft.Limitless_8wekyb3d8bbwe/LocalCache/UserCfg.opt",
+        Path(os.environ.get("APPDATA", "")) / SIM / "UserCfg.opt",
+    ):
+        if cfg.is_file():
+            m = re.search(r'^InstalledPackagesPath\s+"([^"]+)"', cfg.read_text(encoding="utf-8", errors="replace"), re.M)
+            if m:
+                return Path(m.group(1)) / "Community"
+    return None
+
+
+def detect_sim_packages():
+    """Stock packages folder (the one holding fs-base-ui) of an MS Store or Steam install."""
+    roots = [Path(f"{d}:/") for d in string.ascii_uppercase if Path(f"{d}:/").exists()]
+    candidates = [r / "XboxGames" / SIM / "Content/Packages" for r in roots]
+    steam_libs = [r / "Program Files (x86)/Steam" for r in roots] + [r / "SteamLibrary" for r in roots]
+    vdf = Path(os.environ.get("PROGRAMFILES(X86)", "C:/Program Files (x86)")) / "Steam/steamapps/libraryfolders.vdf"
+    if vdf.is_file():
+        steam_libs += [Path(p.replace("\\\\", "/")) for p in re.findall(r'"path"\s+"([^"]+)"', vdf.read_text(errors="replace"))]
+    candidates += [lib / "steamapps/common" / SIM / "Packages" for lib in steam_libs]
+    return next((c for c in candidates if (c / "fs-base-ui/manifest.json").is_file()), None)
+
+
+def load_config():
+    cfg = load_json(ROOT / "config.json")
+    local = ROOT / "config.local.json"
+    if local.exists():
+        cfg.update(load_json(local))
+    for key, detect in (("sim_packages", detect_sim_packages), ("community", detect_community)):
+        if not cfg.get(key):
+            found = detect()
+            if not found:
+                sys.exit(f"build: can't find `{key}`; set it in config.local.json (see config.local.example.json)")
+            cfg[key] = str(found)
+    return cfg
 
 
 def target(inj):
@@ -219,7 +264,8 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("command", choices=["vanilla", "build", "install", "uninstall", "package"])
     args = parser.parse_args()
-    cfg = load_json(ROOT / "config.json")
+    cfg = load_config()
+    print(f"build: stock packages {cfg['sim_packages']}, Community {cfg['community']}")
     injections = load_json(ROOT / "injections.json")["injections"]
     globals()[f"cmd_{args.command}"](cfg, injections)
 

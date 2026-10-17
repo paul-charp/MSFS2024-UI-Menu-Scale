@@ -34,13 +34,22 @@ The script is loaded by a hidden `<img onerror>` appended to cooked components (
 - the cloned component re-initializes after the clone, resetting the fill, value, classes and style of the value box: `render()` puts them back, and runs every 500 ms;
 - Coherent key events have no `.key`: use `keyCode`.
 
+## Setup
+
+- Windows, MSFS 2024, Python 3.12+ (standard library only).
+- `config.json`: package name, title, version. Machine paths are not in it:
+  - the stock packages folder (the one holding `fs-base-ui`) is searched under `<drive>:/XboxGames/Microsoft Flight Simulator 2024/Content/Packages` and the Steam libraries (`steamapps/common/Microsoft Flight Simulator 2024/Packages`);
+  - the Community folder is `InstalledPackagesPath` from the sim's `UserCfg.opt` + `/Community`.
+- If either is wrong or not found, copy `config.local.example.json` to `config.local.json` (gitignored) and set `sim_packages` and `community`.
+- Developer Mode in the sim enables the Coherent debugger on port 19999, used by `tools/inspect_ui.py`.
+
 ## Commands
 
 ```bash
 python tools/build.py install
 ```
 
-- `build`: assemble `build/paulcharp-ui-menu-scale/` from `src/`, the hooked stock components, `layout.json` and `manifest.json`. Edit `config.json` for your sim and Community paths.
+- `build`: assemble `build/paulcharp-ui-menu-scale/` from `src/`, the hooked stock components (copied from your sim install), `layout.json` and `manifest.json`.
 - `install`: build, then junction the build into the Community folder. New files need a sim restart; edits to existing JS only need a build and a view reload.
 - `uninstall`: remove the junction.
 - `package`: build, then zip to `dist/paulcharp-ui-menu-scale-<version>.zip` (package folder at the root).

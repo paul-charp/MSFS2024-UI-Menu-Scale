@@ -57,6 +57,26 @@ The default is in `Community/paulcharp-ui-menu-scale/html_ui/paulcharp-ui-menu-s
 - The Menu Scale line works with the mouse only (no gamepad focus), and its label is in English.
 - The layout is spread back to the screen edges by a heuristic; an unusual page may look off. Please report it with a screenshot.
 
+## Build from source
+
+The repo holds only the mod's own code. The four stock UI components it hooks are copied from your own sim install at build time, so you need MSFS 2024 installed on the PC that builds.
+
+Requirements: Windows, MSFS 2024 (MS Store or Steam), [Python 3.12+](https://www.python.org/downloads/) (no extra packages).
+
+```bash
+git clone https://github.com/paul-charp/MSFS2024-UI-Menu-Scale.git
+```
+
+```bash
+cd MSFS2024-UI-Menu-Scale
+```
+
+```bash
+python tools/build.py package
+```
+
+This writes `dist/paulcharp-ui-menu-scale-<version>.zip`, the same layout as the release zip. `python tools/build.py install` instead links the build into your Community folder for development. The sim and Community paths are detected; if that fails, copy `config.local.example.json` to `config.local.json` and set them. More in [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md).
+
 ## Links
 
 - flightsim.to: [UI Menu Scale](https://flightsim.to/addon/116999/ui-menu-scale)
