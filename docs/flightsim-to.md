@@ -1,5 +1,7 @@
 # flightsim.to page
 
+https://flightsim.to/addon/116999/ui-menu-scale
+
 **Title:** UI Menu Scale
 
 **Category:** Misc / Tools (MSFS 2024)

@@ -16,7 +16,7 @@ Smaller, denser menus for Microsoft Flight Simulator 2024 on high-resolution scr
 
 ## Install
 
-1. Download `paulcharp-ui-menu-scale-<version>.zip` from [Releases](https://github.com/paul-charp/MSFS2024-UI-Menu-Scale/releases) or flightsim.to.
+1. Download `paulcharp-ui-menu-scale-<version>.zip` from [flightsim.to](https://flightsim.to/addon/116999/ui-menu-scale) or [GitHub Releases](https://github.com/paul-charp/MSFS2024-UI-Menu-Scale/releases).
 2. Extract it into your Community folder, so you get `Community/paulcharp-ui-menu-scale/manifest.json`.
 3. Start the sim.
 
@@ -59,6 +59,7 @@ The default is in `Community/paulcharp-ui-menu-scale/html_ui/paulcharp-ui-menu-s
 
 ## Links
 
+- flightsim.to: [UI Menu Scale](https://flightsim.to/addon/116999/ui-menu-scale)
 - Changelog: [CHANGELOG.md](CHANGELOG.md)
 - How it works, building from source: [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)
 - Issues: [GitHub issues](https://github.com/paul-charp/MSFS2024-UI-Menu-Scale/issues)
