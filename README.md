@@ -1,51 +1,64 @@
-# FS24 Hi-DPI UI (`paul-fs24-hidpi`)
+# UI Menu Scale for MSFS 2024
 
-Makes the Microsoft Flight Simulator 2024 menus denser on high-resolution screens. No restyle: the stock UI, just not drawn at 2x on 4K.
+Smaller, denser menus for Microsoft Flight Simulator 2024 on high-resolution screens. The stock menus are drawn at 2x on a 4K screen and 1.33x at 1440p, so large text and wide margins eat the screen. This mod keeps the stock UI exactly as designed and only draws it at a smaller scale, while still filling the screen. The scale can be adjusted in the sim's own Settings.
 
-| Screen | Stock | With the mod |
+![World map at stock size (left) and with the mod at 1.5x (right), 4K screen](docs/images/compare-world-map.jpg)
+
+![Controls settings at stock size (left) and with the mod (right): about twice as many bindings on screen](docs/images/compare-controls.jpg)
+
+| Screen | Stock | With the mod (default) |
 |---|---|---|
 | 4K (2160p) | 2x | 1.5x |
 | 1440p | 1.33x | 1x |
 | 1080p | 1x | 1x (unchanged) |
 
-## How it works
+> **Works with [SimpleUI](https://flightsim.to/addon/116742/simpleui-there-i-fixed-msfs-ui-for-you).** Use both together: SimpleUI cleans up the menus, UI Menu Scale sets their size.
 
-Every stock size is `calc(var(--unscaledScreenHeight) * N / 1080)`. Asobo's `updateScreenSize()` (`Global/lib.bundle.js`) sets that variable from `window.viewportScreenHeight` when defined, else from the real height, and reruns on every resize and UI-scaling change. `hidpi.js` sets `window.viewportScreenHeight` to `max(1080, height x 0.75)`, so all components and the JS that measures them lay out at the new density. The sim's own UI scaling option still applies on top.
+## Install
 
-A denser layout alone would shrink every screen toward the centre: stock layouts are designed for a 1920×1080 frame, and at 1.5x on 4K the viewport is 2560×1440 in those units, so centre-anchored blocks drift inward while edge-anchored containers grow. `reanchor.js` fixes every centre-anchored block whose containing block grew (larger than any stock frame), against that container's recovered design size:
+1. Download `paulcharp-ui-menu-scale-<version>.zip` from [Releases](https://github.com/paul-charp/MSFS2024-UI-Menu-Scale/releases) or flightsim.to.
+2. Extract it into your Community folder, so you get `Community/paulcharp-ui-menu-scale/manifest.json`.
+3. Start the sim.
 
-- blocks on one side of the centre line, or aligned with a frame edge, are pinned to that edge with the same margin;
-- frame-wide blocks stretch to the full width, keeping both margins (right-anchored children keep their width);
-- tall blocks crossing the centre (settings panels, lists) stretch to the full height;
-- truly centred blocks (dialogs) stay centred.
+To uninstall, delete the `paulcharp-ui-menu-scale` folder.
 
-Offsets are written in 1080p units, so they follow density changes. A MutationObserver applies this synchronously as pages mount, before the engine reads the layout.
+## Adjust the scale
 
-Each Coherent view is a separate JS context, so the mod hooks one always-mounted component per view (see `injections.json`): `TitlePage` (menus), `Shortcut` (Esc / Select key hints and popups: the notifications view is created at startup, before Community packages mount, so the hook must be a component it creates later), `Notification_Gameplay` (notifications), `Worldmap_Pin` (world map). Panel views (toolbar, mission steps) set their own viewport height and are left alone. `build` warns if another Community mod overrides one of these components.
+**Settings › Accessibility › User interface and font › Menu Scale (mod)**, the last line of that page.
 
-The script is loaded by a hidden `<img onerror>` appended to cooked components (e.g. `TitlePage`, `fs-base-ui/cookedcomps/{0CAE343C-...}.html`), copied from your local sim install at build time. Asobo files are never stored in this repo.
+- Drag or click the bar, use the mouse wheel, or Left / Right while the mouse is over it. The menus redraw when you release.
+- The value shows the scale you get on your screen (e.g. 1.5x on 4K).
+- Your choice is saved by the sim and kept across restarts.
 
-## Tuning
+![The Menu Scale line in Settings](docs/images/settings-slider.jpg)
 
-Density defaults to 0.75. Change it live (Devmode, Coherent inspector on `localhost:19999`):
+The slider sets the **density**: the layout height divided by your screen height, from 0.5 to 1. Menus are never drawn below the stock 1080p size.
 
-```bash
-python tools/inspect_ui.py "localStorage['fs24hidpi.density'] = '0.8'; fs24hidpi.apply()"
-```
+| Density | 4K | 1440p |
+|---|---|---|
+| 0.5 | 1x | 1x |
+| 0.67 | 1.33x | 1x |
+| 0.75 (default) | 1.5x | 1x |
+| 0.85 | 1.7x | 1.13x |
+| 1 | 2x (stock) | 1.33x (stock) |
 
-The value persists if Coherent keeps `localStorage`; otherwise edit `DEFAULT_DENSITY` in `src/html_ui/paul-fs24-hidpi/hidpi.js`.
+The default is in `Community/paulcharp-ui-menu-scale/html_ui/paulcharp-ui-menu-scale/settings.json` (`{"density": 0.75}`). Changing that file resets the value set with the slider.
 
-## Commands
+## Compatibility
 
-```bash
-python tools/build.py install
-```
+- MSFS 2024 on PC. The stock **Interface Scale** and **Minimum Text Size** settings still apply on top.
+- Applies to the menus, world map and notifications. The toolbar, in-game panels and the EFB keep their stock size.
+- Works with [SimpleUI](https://flightsim.to/addon/116742/simpleui-there-i-fixed-msfs-ui-for-you), tested with 1.0.11.
+- Mods that replace the same stock UI components conflict with this one: `TitlePage`, `Shortcut`, `Notification_Gameplay`, `Worldmap_Pin`. Only one of the two works.
+- After a sim update that changes one of these components, the mod may need an update.
 
-`install` builds and junctions `build/paul-fs24-hidpi` into the Community folder; later `build`s are live after a sim restart. `uninstall` removes the junction. After a sim update, `build` warns if the hooked component changed.
+## Known limits
 
-## Limits
+- The Menu Scale line works with the mouse only (no gamepad focus), and its label is in English.
+- The layout is spread back to the screen edges by a heuristic; an unusual page may look off. Please report it with a screenshot.
 
-- Re-anchoring is a heuristic over the stock layout; a page with an unusual structure may need an exception.
-- Mods that place elements with stylesheet rules in the stock centred frame need a compatibility rule (`COMPAT_CSS` in `reanchor.js`). Included: SimpleUI's favourites strip.
-- The toolbar, in-game panels and the EFB keep stock size.
-- Two mods overriding the same cooked component conflict. This one uses `TitlePage`, `Shortcut`, `Notification_Gameplay` and `Worldmap_Pin`; paul-fs24-ui uses `MenuBarPage`; SimpleUI uses `MasterPage`; //42 Flow uses `Startpage`, `HUD_*` and `Shortcutblock`.
+## Links
+
+- Changelog: [CHANGELOG.md](CHANGELOG.md)
+- How it works, building from source: [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)
+- Issues: [GitHub issues](https://github.com/paul-charp/MSFS2024-UI-Menu-Scale/issues)

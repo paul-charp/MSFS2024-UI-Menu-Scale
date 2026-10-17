@@ -4,7 +4,7 @@
     var W = innerWidth, H = innerHeight, out = [];
     out.push("pages: " + [].map.call(document.querySelectorAll("ui-resource-element[resource-path*=page]"),
         function (e) { return e.getAttribute("name"); }).join(","));
-    out.push("layout " + window.viewportScreenHeight + ", reanchor " + (window.fs24hidpiReanchor ? "on" : "off"));
+    out.push("layout " + window.viewportScreenHeight + ", reanchor " + (window.uiMenuScaleReanchor ? "on" : "off"));
     function visible(e) {
         for (var a = e; a && a.nodeType === 1; a = a.parentElement) {
             var cs = getComputedStyle(a);
@@ -20,8 +20,8 @@
         return false;
     }
     var changed = [], outside = [];
-    [].forEach.call(document.querySelectorAll("[data-fs24hidpi]"), function (e) {
-        var m = e.getAttribute("data-fs24hidpi");
+    [].forEach.call(document.querySelectorAll("[data-uimenuscale]"), function (e) {
+        var m = e.getAttribute("data-uimenuscale");
         if (m === "-" || m === "kept") return;
         var r = e.getBoundingClientRect();
         changed.push(e.getAttribute("name") + " " + m + " [" + [r.left, r.top, r.width, r.height].map(Math.round) + "]");

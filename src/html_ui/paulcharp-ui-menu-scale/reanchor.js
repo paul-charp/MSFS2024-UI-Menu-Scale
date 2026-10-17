@@ -1,4 +1,4 @@
-// FS24 Hi-DPI UI, part 2: spread the denser layout back out to the screen edges.
+// UI Menu Scale, part 2: spread the denser layout back out to the screen edges.
 //
 // Stock layouts are designed for a 1920 x 1080 frame (in 1080p units). With a denser
 // --unscaledScreenHeight the viewport becomes wider and taller in those units (2560 x 1440 on 4K at
@@ -26,7 +26,7 @@
     var STRETCH_MIN_H = 0.45; // of the design height, for blocks crossing the centre line
     var WIDEN_MIN = 0.4;      // edge-anchored fixed blocks this wide (of the design width) grow in proportion
     var EDGE = 160;           // 1080p units: "aligned with the frame edge" tolerance
-    var MARK = "data-fs24hidpi";
+    var MARK = "data-uimenuscale";
 
     function u(n) { return "calc(var(--unscaledScreenHeight) * " + Math.round(n * 100) / 100 + "px / 1080)"; }
     function k() { return parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--unscaledScreenHeight")) / 1080 || 1; }
@@ -34,7 +34,7 @@
     // Extra viewport, in 1080p units, compared with stock density.
     function extra() {
         var kk = k();
-        var natural = window.fs24hidpi ? window.fs24hidpi.naturalHeight() : kk * 1080;
+        var natural = window.uiMenuScale ? window.uiMenuScale.naturalHeight() : kk * 1080;
         var kn = natural / 1080;
         return { x: Math.max(0, innerWidth / kk - innerWidth / kn), y: Math.max(0, innerHeight / kk - innerHeight / kn) };
     }
@@ -348,22 +348,22 @@
     //   SimpleUI favourites strip: left: 50% - 940, top: 50% - 194 (under the location search).
     var COMPAT_CSS =
         ".sui-fs{left:" + u(20) + " !important;top:" + u(540 - 194) + " !important}";
-    if (!document.querySelector("style[data-fs24hidpi-compat]")) {
+    if (!document.querySelector("style[data-uimenuscale-compat]")) {
         var compat = document.createElement("style");
-        compat.setAttribute("data-fs24hidpi-compat", "");
+        compat.setAttribute("data-uimenuscale-compat", "");
         compat.textContent = COMPAT_CSS;
         document.head.appendChild(compat);
     }
 
-    if (window.fs24hidpiReanchor) {
-        window.fs24hidpiReanchor.observer.disconnect();
-        window.fs24hidpiReanchor.restore();
+    if (window.uiMenuScaleReanchor) {
+        window.uiMenuScaleReanchor.observer.disconnect();
+        window.uiMenuScaleReanchor.restore();
     }
     // Synchronous: MutationObserver callbacks run before the next render.
     var observer = new MutationObserver(onMutations);
     observer.observe(document.documentElement, { childList: true, subtree: true });
     // Density changes resize the viewport in 1080p units: re-evaluate on the next frame.
     window.addEventListener("resize", function () { requestAnimationFrame(function () { restore(); scan(); }); });
-    window.fs24hidpiReanchor = { observer: observer, scan: scan, scanNodes: scanNodes, restore: restore };
+    window.uiMenuScaleReanchor = { observer: observer, scan: scan, scanNodes: scanNodes, restore: restore };
     scan();
 })();

@@ -1,5 +1,5 @@
 {
-  "_comment": "One hook per Coherent view: each view is its own JS context and needs hidpi.js loaded separately. A hook is a cooked component the view mounts AFTER Community packages are mounted (the notifications view is created at sim startup, so components it builds then come from the stock files): it gets a hidden <img onerror> that loads hidpi.js once per view. Panel views set their own viewportScreenHeight and are left alone. Avoid components other mods override (SimpleUI: MasterPage; paul-fs24-lite: BlurPage, Panel_Header, Gauge_Circular; paul-fs24-ui: MenuBarPage; //42 Flow: Startpage, HUD_*, Shortcutblock).",
+  "_comment": "One hook per Coherent view: each view is its own JS context and needs menu-scale.js loaded separately. A hook is a cooked component the view mounts AFTER Community packages are mounted (the notifications view is created at sim startup, so components it builds then come from the stock files): it gets a hidden <img onerror> that loads menu-scale.js once per view. Panel views set their own viewportScreenHeight and are left alone. Avoid components other mods override (SimpleUI: MasterPage; paul-fs24-lite: BlurPage, Panel_Header, Gauge_Circular; paul-fs24-ui: MenuBarPage; //42 Flow: Startpage, HUD_*, Shortcutblock).",
   "injections": [
     {
       "kind": "cooked",
@@ -7,8 +7,8 @@
       "package": "fs-base-ui",
       "component": "TitlePage",
       "guid": "0CAE343C-E00A-415D-8E53-9FB4686C8575",
-      "boot": "/paul-fs24-hidpi/hidpi.js",
-      "flag": "fs24hidpi_booted"
+      "boot": "/paulcharp-ui-menu-scale/menu-scale.js",
+      "flag": "uimenuscale_booted"
     },
     {
       "kind": "cooked",
@@ -16,8 +16,8 @@
       "package": "fs-base-ui",
       "component": "Shortcut",
       "guid": "46DCD434-46E3-478F-8557-0AC650079C62",
-      "boot": "/paul-fs24-hidpi/hidpi.js",
-      "flag": "fs24hidpi_booted"
+      "boot": "/paulcharp-ui-menu-scale/menu-scale.js",
+      "flag": "uimenuscale_booted"
     },
     {
       "kind": "cooked",
@@ -25,8 +25,8 @@
       "package": "fs-base-ui",
       "component": "Notification_Gameplay",
       "guid": "E82584F1-5E3B-46CC-875E-7783EFDCF4B7",
-      "boot": "/paul-fs24-hidpi/hidpi.js",
-      "flag": "fs24hidpi_booted"
+      "boot": "/paulcharp-ui-menu-scale/menu-scale.js",
+      "flag": "uimenuscale_booted"
     },
     {
       "kind": "cooked",
@@ -34,8 +34,8 @@
       "package": "fs-base-ui",
       "component": "Worldmap_Pin",
       "guid": "DACBEB8C-65F1-456F-9A21-7E6C20BF6645",
-      "boot": "/paul-fs24-hidpi/hidpi.js",
-      "flag": "fs24hidpi_booted"
+      "boot": "/paulcharp-ui-menu-scale/menu-scale.js",
+      "flag": "uimenuscale_booted"
     }
   ]
 }

@@ -1,9 +1,10 @@
-"""Build tool for the paul-fs24-hidpi community package.
+"""Build tool for the paulcharp-ui-menu-scale community package.
 
     python tools/build.py vanilla     refresh stock.lock.json (hash of each hooked stock component)
     python tools/build.py build       assemble build/<package>/ with the hook, layout.json, manifest.json
     python tools/build.py install     build, then junction build/<package> into the Community folder
     python tools/build.py uninstall   remove the Community junction
+    python tools/build.py package     build, then zip it to dist/<package>-<version>.zip for release
 """
 import argparse
 import hashlib
@@ -13,18 +14,20 @@ import shutil
 import subprocess
 import sys
 import time
+import zipfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 SRC = ROOT / "src"
 BUILD = ROOT / "build"
+DIST = ROOT / "dist"
 VANILLA = ROOT / "vanilla"
 LOCK = ROOT / "stock.lock.json"
 VANILLA_EXTS = {".html", ".css", ".js", ".json", ".svg", ".uxml", ".xml", ".ts"}
 # Mirrored per package; cookedcomps/ is the compiled DOM the 2024 menus actually render.
 VANILLA_DIRS = ["html_ui", "components", "cookedcomps"]
-MARK_BEGIN = "<!-- paul-fs24-hidpi:begin -->"
-MARK_END = "<!-- paul-fs24-hidpi:end -->"
+MARK_BEGIN = "<!-- ui-menu-scale:begin -->"
+MARK_END = "<!-- ui-menu-scale:end -->"
 # Seconds between 1601-01-01 (Windows FILETIME epoch) and 1970-01-01.
 FILETIME_EPOCH = 11644473600
 
@@ -200,9 +203,21 @@ def cmd_uninstall(cfg, injections):
     print(f"uninstall: removed {link}")
 
 
+def cmd_package(cfg, injections):
+    cmd_build(cfg, injections)
+    pkg_dir = BUILD / cfg["package_name"]
+    DIST.mkdir(exist_ok=True)
+    out = DIST / f"{cfg['package_name']}-{cfg['version']}.zip"
+    # The package folder at the root of the zip: users extract it straight into Community.
+    with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as z:
+        for f in sorted(p for p in pkg_dir.rglob("*") if p.is_file()):
+            z.write(f, f.relative_to(BUILD).as_posix())
+    print(f"package: {out} ({out.stat().st_size // 1024} KB)")
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("command", choices=["vanilla", "build", "install", "uninstall"])
+    parser.add_argument("command", choices=["vanilla", "build", "install", "uninstall", "package"])
     args = parser.parse_args()
     cfg = load_json(ROOT / "config.json")
     injections = load_json(ROOT / "injections.json")["injections"]
