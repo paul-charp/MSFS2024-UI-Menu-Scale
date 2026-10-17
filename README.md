@@ -62,3 +62,7 @@ The default is in `Community/paulcharp-ui-menu-scale/html_ui/paulcharp-ui-menu-s
 - Changelog: [CHANGELOG.md](CHANGELOG.md)
 - How it works, building from source: [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)
 - Issues: [GitHub issues](https://github.com/paul-charp/MSFS2024-UI-Menu-Scale/issues)
+
+## License
+
+[MIT](LICENSE) for the mod's own code. The release zip also contains four stock MSFS UI components, each with a one-line hook added; those remain Microsoft / Asobo's.
