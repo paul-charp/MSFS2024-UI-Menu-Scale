@@ -20,8 +20,11 @@
     var STORE_KEY = "UIMENUSCALE_DENSITY";
     var SYNC_MS = 1000;
 
-    // Respect views that set their own viewport height (embedded or fixed-size UIs).
-    if (window.viewportScreenHeight != null) return;
+    // In-flight panels (toolbar, Communication...): the sim sets their viewport height itself
+    // (SET_VIEWPORT_RATIO, the screen height). They get the same density through a property wrapper.
+    var isPanel = /\/panel\.html$/i.test(window.location.pathname);
+    // Respect other views that set their own viewport height (embedded or fixed-size UIs).
+    if (window.viewportScreenHeight != null && !isPanel) return;
 
     function valid(v) { return v > 0.3 && v <= 1; }
 
@@ -82,18 +85,40 @@
         return Math.round(vh * virtualHeight);
     }
 
+    function denser(h) {
+        return Math.min(h, Math.max(MIN_HEIGHT, Math.round(h * density())));
+    }
+
     function target() {
         var natural = naturalHeight();
         if (!isFinite(natural) || natural <= 0) return null;
-        return Math.min(natural, Math.max(MIN_HEIGHT, Math.round(natural * density())));
+        return denser(natural);
     }
 
-    var applied = null;
+    // Panels: keep the sim's value and hand Asobo's updateScreenSize() the denser one.
+    if (isPanel) {
+        var panelHeight = window.viewportScreenHeight;
+        Object.defineProperty(window, "viewportScreenHeight", {
+            configurable: true,
+            enumerable: true,
+            get: function () { return panelHeight > 0 ? denser(panelHeight) : panelHeight; },
+            set: function (v) { panelHeight = v; }
+        });
+    }
+
+    var applied = null, panelApplied = null;
     function apply() {
         var d = density();
         if (d !== applied) {
             applied = d;
             window.dispatchEvent(new Event("uimenuscale-density"));
+        }
+        if (isPanel) {
+            var h = window.viewportScreenHeight;
+            if (h === panelApplied) return;
+            panelApplied = h;
+            window.dispatchEvent(new Event("resize"));
+            return;
         }
         var t = target();
         if (t == null) return;
@@ -122,8 +147,10 @@
         var t = target();
         if (t != null) window.viewportScreenHeight = t;
     }
-    window.addEventListener("resize", onResize);
-    if (window.parent !== window) window.parent.addEventListener("resize", onResize);
+    if (!isPanel) {
+        window.addEventListener("resize", onResize);
+        if (window.parent !== window) window.parent.addEventListener("resize", onResize);
+    }
 
     window.uiMenuScale = { apply: apply, set: set, density: density, scale: scale, naturalHeight: naturalHeight, storage: storage };
 
@@ -140,8 +167,9 @@
         // Each view is its own JS context: pick up changes made in another view.
         setInterval(apply, SYNC_MS);
         // After the first apply, so their first pass sees the final density.
-        // Part 2: spread the denser layout back to the screen edges.
-        load("reanchor.js");
+        // Part 2: spread the denser layout back to the screen edges (not in panels: a panel
+        // fills its own window).
+        if (!isPanel) load("reanchor.js");
         // Part 3: the Settings slider, in the menus view.
         if (/\/mainUI\.html$/i.test(window.location.pathname)) load("slider.js");
     }

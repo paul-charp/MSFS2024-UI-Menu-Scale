@@ -1,5 +1,5 @@
 {
-  "_comment": "One hook per Coherent view: each view is its own JS context and needs menu-scale.js loaded separately. A hook is a cooked component the view mounts AFTER Community packages are mounted (the notifications view is created at sim startup, so components it builds then come from the stock files): it gets a hidden <img onerror> that loads menu-scale.js once per view. Panel views set their own viewportScreenHeight and are left alone. Avoid components other mods override (SimpleUI: MasterPage; paul-fs24-lite: BlurPage, Panel_Header, Gauge_Circular; paul-fs24-ui: MenuBarPage; //42 Flow: Startpage, HUD_*, Shortcutblock).",
+  "_comment": "One hook per Coherent view: each view is its own JS context and needs menu-scale.js loaded separately. A hook is a cooked component the view mounts AFTER Community packages are mounted (the notifications view is created at sim startup, so components it builds then come from the stock files): it gets a hidden <img onerror> that loads menu-scale.js once per view. Panel views get their own viewportScreenHeight from the sim; menu-scale.js wraps it. Avoid components other mods override (SimpleUI: MasterPage; paul-fs24-lite: BlurPage, Panel_Header, Gauge_Circular; paul-fs24-ui: MenuBarPage; //42 Flow: Startpage, HUD_*, Shortcutblock).",
   "injections": [
     {
       "kind": "cooked",
@@ -34,6 +34,15 @@
       "package": "fs-base-ui",
       "component": "Worldmap_Pin",
       "guid": "DACBEB8C-65F1-456F-9A21-7E6C20BF6645",
+      "boot": "/paulcharp-ui-menu-scale/menu-scale.js",
+      "flag": "uimenuscale_booted"
+    },
+    {
+      "kind": "cooked",
+      "screen": "in-flight panels (Panel.html views: toolbar, Communication...)",
+      "package": "fs-base-ui",
+      "component": "Panel",
+      "guid": "14D3852E-53CC-48D7-BA6B-FC87FE21C2A6",
       "boot": "/paulcharp-ui-menu-scale/menu-scale.js",
       "flag": "uimenuscale_booted"
     }

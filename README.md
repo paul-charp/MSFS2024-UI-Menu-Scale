@@ -47,7 +47,7 @@ The default is in `Community/paulcharp-ui-menu-scale/html_ui/paulcharp-ui-menu-s
 ## Compatibility
 
 - MSFS 2024 on PC. The stock **Interface Scale** and **Minimum Text Size** settings still apply on top.
-- Applies to the menus, world map and notifications. The toolbar, in-game panels and the EFB keep their stock size.
+- Applies to the menus, world map, notifications, the toolbar and in-flight panels. The EFB keeps its stock size.
 - Works with [SimpleUI](https://flightsim.to/addon/116742/simpleui-there-i-fixed-msfs-ui-for-you), tested with 1.0.11.
 - Mods that replace the same stock UI components conflict with this one: `TitlePage`, `Shortcut`, `Notification_Gameplay`, `Worldmap_Pin`. Only one of the two works.
 - After a sim update that changes one of these components, the mod may need an update.
