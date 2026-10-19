@@ -6,7 +6,7 @@ https://flightsim.to/addon/116999/ui-menu-scale
 
 **Category:** Misc / Tools (MSFS 2024)
 
-**Short description:** Smaller, denser MSFS 2024 menus on 4K and 1440p screens, adjustable in the sim's Settings.
+**Short description:** Smaller, denser MSFS 2024 menus on 4K and 1440p screens: more on screen, less scrolling. Adjustable in the sim's Settings.
 
 ## Description
 
