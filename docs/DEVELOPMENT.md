@@ -11,7 +11,7 @@ A denser layout alone would shrink every screen toward the centre: stock layouts
 - tall blocks crossing the centre (settings panels, lists) stretch to the full height;
 - truly centred blocks (dialogs) stay centred.
 
-Offsets are written in 1080p units, so they follow density changes. A MutationObserver applies this synchronously as pages mount, before the engine reads the layout.
+Offsets are written in 1080p units, so they follow density changes. A MutationObserver applies this synchronously as pages mount, before the engine reads the layout. Elements inside hidden pages (hundreds in the menus view) are parked with their highest box-less ancestor and re-checked once per frame after DOM changes, one `getClientRects()` per ancestor: every DOM call costs about 1 µs in Coherent, and hovering a menu line changes the DOM every frame.
 
 Each Coherent view is a separate JS context, so the mod hooks one always-mounted component per view (see `injections.json`): `TitlePage` (menus), `Shortcut` (Esc / Select key hints and popups: the notifications view is created at startup, before Community packages mount, so the hook must be a component it creates later), `Notification_Gameplay` (notifications), `Worldmap_Pin` (world map). Panel views (toolbar, mission steps) set their own viewport height and are left alone. `build` warns if another Community mod overrides one of these components.
 
@@ -32,7 +32,9 @@ The script is loaded by a hidden `<img onerror>` appended to cooked components (
 - `Slider` has `pointer-events: none`, so the mouse goes to `Sliderelement`;
 - Coherent often ends a drag with `click` and no `mouseup`, and stock handlers stop propagation: listeners use the capture phase;
 - the cloned component re-initializes after the clone, resetting the fill, value, classes and style of the value box: `render()` puts them back, and runs every 500 ms;
-- Coherent key events have no `.key`: use `keyCode`.
+- Coherent key events have no `.key`: use `keyCode`;
+- each slot ends with a `[separator=true]` line, hidden (`.hide`) in the last one: the last stock slot's is shown, ours hidden, re-checked by `render()`;
+- the label comes from `LABELS`, one row per sim UI language. The menus view has no language code (`<html lang>` is empty) and doesn't load Community `.locPak` files, so the language is recognized from the stock translations of `MENU.SEARCH` and `MENU.EXIT` (English if neither matches, e.g. after Asobo rewords both). `render()` redraws it.
 
 ## Setup
 

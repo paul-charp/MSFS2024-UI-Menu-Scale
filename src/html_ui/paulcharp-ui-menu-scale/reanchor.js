@@ -168,6 +168,10 @@
 
     function process(el, ex, kk) {
         if (!CANDIDATE.test(el.getAttribute("style") || "")) { el.setAttribute(MARK, "-"); return true; }
+        // Not laid out (hidden page): retry later. Checked before any getComputedStyle, the costly
+        // part: new hidden subtrees can hold hundreds of candidates.
+        var r0 = el.getBoundingClientRect();
+        if (!r0.width && !r0.height) return false;
         var s = el.style;
         var hx = pct(s.getPropertyValue("--h-anchor")) === 0.5, vy = pct(s.getPropertyValue("--v-anchor")) === 0.5;
         var widened = hx ? null : widen(el, ex, kk);         // x: proportional widening
@@ -296,22 +300,41 @@
 
     // Document order is parents before children: a child's decision uses its parent's final size.
     var SELECTOR = "[style*='-anchor']:not([" + MARK + "])";
-    var retry = [];
-    function scanNodes(roots) {
+    // Elements not laid out yet (hidden pages: hundreds in the menus view), each with its highest
+    // ancestor that has no box (display: none, unlike a 0 px wrapper). Each DOM call costs about 1 us
+    // in Coherent: a retry pass checks one box per hidden ancestor, and the elements' own rects only
+    // once it shows.
+    var retry = new Map();
+    function laidOut(e) { var r = e.getBoundingClientRect(); return !!(r.width || r.height); }
+    function hasBox(e) { return e.getClientRects().length > 0; }
+    function hiddenRoot(el, roots) {
+        var p = el.parentElement;
+        if (!p || p === document.body || hasBox(p)) return el;
+        if (!roots.has(p)) roots.set(p, hiddenRoot(p, roots));
+        return roots.get(p);
+    }
+    function scanNodes(roots, withRetry) {
         var ex = extra(), kk = k();
         if (!ex.x && !ex.y) return;
         cache = new Map();
-        var list = retry.filter(function (e) { return e.isConnected && !e.hasAttribute(MARK); });
+        var list = [], shown = new Map(), hidden = new Map();
+        if (withRetry) {
+            retry.forEach(function (root, e) {
+                if (!shown.has(root)) shown.set(root, root.isConnected ? hasBox(root) : null);
+                var s = shown.get(root);
+                if (s === null) retry.delete(e);
+                else if (s && laidOut(e)) { retry.delete(e); list.push(e); }
+            });
+        }
         roots.forEach(function (n) {
             if (n.nodeType !== 1) return;
             if (n.matches && n.matches(SELECTOR)) list.push(n);
             [].push.apply(list, n.querySelectorAll(SELECTOR));
         });
-        retry = [];
         for (var i = 0; i < list.length; i++) {
             var el = list[i];
             if (el.hasAttribute(MARK)) continue;
-            if (process(el, ex, kk) === false) { retry.push(el); continue; }
+            if (process(el, ex, kk) === false) { retry.set(el, hiddenRoot(el, hidden)); continue; }
             var m = el.getAttribute(MARK);
             if (m && m !== "-" && m !== "kept") {
                 // This container changed: decisions already taken for its descendants are stale.
@@ -324,11 +347,20 @@
         }
         cache = null;
     }
-    function scan() { scanNodes([document.documentElement]); }
+    function scan() { scanNodes([document.documentElement], true); }
+    // New nodes: synchronously. Retries: once per frame after any DOM change (hover effects and
+    // text updates change the DOM every frame).
+    var retryPending = false;
     function onMutations(records) {
         var roots = [];
-        records.forEach(function (rec) { [].push.apply(roots, rec.addedNodes); });
-        if (roots.length || retry.length) scanNodes(roots);
+        records.forEach(function (rec) {
+            for (var i = 0; i < rec.addedNodes.length; i++) if (rec.addedNodes[i].nodeType === 1) roots.push(rec.addedNodes[i]);
+        });
+        if (roots.length) scanNodes(roots, false);
+        if (retry.size && !retryPending) {
+            retryPending = true;
+            requestAnimationFrame(function () { retryPending = false; scanNodes([], true); });
+        }
     }
 
     // Undo everything (dev: re-evaluate this file after a restore to test changes live).

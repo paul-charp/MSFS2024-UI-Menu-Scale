@@ -13,19 +13,80 @@
     var KEYS = ["OPTIONS_UI_SCALE", "OPTIONS_UI_MIN_TEXT_SIZE", "OPTIONS_UI_BACKGROUNDS_OPACITY"];
     var MARK = "data-uimenuscale-slider";
     var MIN = 0.5, MAX = 1, STEP = 0.05;
-    var LABEL = "Menu Scale (mod)";
+    // The menus view exposes no language code, and Community .locPak files aren't loaded there: the
+    // language is recognized from how the sim translates two stock words (fs-base .locPak files).
+    // [locale, label, MENU.SEARCH, MENU.EXIT]
+    var LABELS = [
+        ["en-US", "Menu Scale", "Search", "Exit"],
+        ["fr-FR", "Échelle des menus", "Recherche", "Sortie"],
+        ["de-DE", "Menüskalierung", "Suche", "Verlassen"],
+        ["es-ES", "Escala de los menús", "Buscar", "Salir"],
+        ["es-MX", "Escala de los menús", "Buscar", "Salir"],
+        ["it-IT", "Scala dei menu", "Cerca", "Esci"],
+        ["pt-BR", "Escala dos menus", "Pesquisar", "Sair"],
+        ["pt-PT", "Escala dos menus", "Pesquisar", "Sair"],
+        ["nl-NL", "Menuschaal", "Zoeken", "Uitgang"],
+        ["pl-PL", "Skala menu", "Szukaj", "Wyjście"],
+        ["ru-RU", "Масштаб меню", "Поиск", "Выход"],
+        ["sv-SE", "Menyskala", "Sök", "Avsluta"],
+        ["nb-NO", "Menyskala", "Søk", "Utgang"],
+        ["fi-FI", "Valikoiden skaalaus", "Haku", "Poistu"],
+        ["tr-TR", "Menü ölçeği", "Ara", "Çıkış"],
+        ["ja-JP", "メニューのスケール", "検索", "終了"],
+        ["ko-KR", "메뉴 배율", "검색", "나가기"],
+        ["zh-CN", "菜单缩放", "搜索", "退出"]
+    ];
+
+    function label() {
+        var loc = window.top.g_localization, text = LABELS[0][1];
+        if (loc) {
+            var search = loc.Translate("TT:MENU.SEARCH"), exit = loc.Translate("TT:MENU.EXIT");
+            for (var i = 0; i < LABELS.length; i++) {
+                if (LABELS[i][2] === search || LABELS[i][3] === exit) { text = LABELS[i][1]; break; }
+            }
+        }
+        return text + " (mod)";
+    }
 
     function clamp(d) { return Math.min(MAX, Math.max(MIN, Math.round(d / STEP) * STEP)); }
     function q(root, name) { return root.querySelector("[name=" + name + "]"); }
 
     // The one slot on screen (the list rebuilds it on page and tab changes) and its state.
     var slot = null, value = 0, dragging = false, hovered = false;
+    // The label's text node, redrawn when the sim language changes.
+    var labelEl = null;
     // The value box's classes and inline style (position, font size following the density); the cloned
     // component resets them when it initializes.
     var inputStyle = "", inputClass = "";
+    // Each slot ends with a Separator line, hidden (.hide) in the last one. Ours is the last now: the
+    // stock slot before it shows its line, ours doesn't. The list may hide it again when it refreshes
+    // a slot, so render() puts it back.
+    var shownSep = null;
+
+    function separator(s) {
+        for (var i = s.children.length - 1; i >= 0; i--) {
+            if (s.children[i].getAttribute("separator") === "true") return s.children[i];
+        }
+        return null;
+    }
+    function separate(list) {
+        var last = null, top = -Infinity;
+        for (var i = 0; i < list.children.length; i++) {
+            var c = list.children[i];
+            if (c === slot || c.style.display === "none") continue;
+            var t = parseFloat(c.style.getPropertyValue("--top"));
+            if (isFinite(t) && t > top) { last = c; top = t; }
+        }
+        var mine = separator(slot), theirs = last && separator(last);
+        if (mine && !mine.classList.contains("hide")) mine.classList.add("hide");
+        if (theirs && theirs.classList.contains("hide")) { theirs.classList.remove("hide"); shownSep = theirs; }
+    }
 
     function render() {
         if (!slot) return;
+        if (slot.parentNode) separate(slot.parentNode);
+        var text = label();
+        if (labelEl && labelEl.textContent !== text) labelEl.textContent = text;
         q(slot, "ActiveSliderContainer").style.width = (value - MIN) / (MAX - MIN) * 100 + "%";
         var input = slot.querySelector("input");
         if (!input) return;
@@ -53,7 +114,8 @@
 
         var text = s.querySelector("text-marquee[name=Text]");
         text.removeAttribute("data-text");
-        (text.querySelector(".marquee__content span") || text).textContent = LABEL;
+        labelEl = text.querySelector(".marquee__content span") || text;
+        labelEl.textContent = label();
         var input = s.querySelector("input");
         inputStyle = input && input.getAttribute("style") || "";
         inputClass = input && input.className || "";
@@ -73,11 +135,16 @@
         sync();
     }
 
+    // Lists holding one of the KEYS lines: one native query per list instead of a walk of its slots
+    // (check runs every frame while the DOM changes, e.g. hover effects).
+    var KEY_SELECTOR = KEYS.map(function (k) { return "text-marquee[data-text$='." + k + "']"; }).join(",");
+
     function check() {
         var lists = document.querySelectorAll("virtual-list");
         var found = false;
         for (var i = 0; i < lists.length; i++) {
             var list = lists[i], stock = null, rank = KEYS.length, mine = null;
+            if (!list.querySelector(KEY_SELECTOR) && !list.querySelector("[" + MARK + "]")) continue;
             for (var j = 0; j < list.children.length; j++) {
                 var c = list.children[j];
                 if (c.hasAttribute(MARK)) { mine = c; continue; }
@@ -87,7 +154,11 @@
                 if (r >= 0 && r < rank) { stock = c; rank = r; }
             }
             if (stock && !mine) build(stock, list);
-            else if (!stock && mine) list.removeChild(mine);
+            else if (!stock && mine) {
+                list.removeChild(mine);
+                if (shownSep && list.contains(shownSep)) shownSep.classList.add("hide");
+                shownSep = null;
+            }
             if (stock) found = true;
         }
         if (!found) slot = null;

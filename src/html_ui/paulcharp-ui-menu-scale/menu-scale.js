@@ -132,6 +132,7 @@
     function load(file) {
         var script = document.createElement("script");
         script.type = "text/javascript";
+        script.charset = "utf-8";
         script.src = "/paulcharp-ui-menu-scale/" + file;
         document.head.appendChild(script);
     }
