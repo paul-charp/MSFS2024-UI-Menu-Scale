@@ -20,7 +20,7 @@ MSFS 2024 Community mod that draws the stock menus at a denser scale. How it wor
 
 ## Testing
 
-- `python tools/build.py install` once, then a sim restart for new files. Edits to existing JS: `build`, then `python tools/inspect_ui.py --page N --reload` (`--list` shows the pages; menus is usually 2).
+- `python tools/build.py install` once, then a sim restart for new files. Edits to existing JS: `build`, then `python tools/inspect_ui.py --page N --reload` (`--list` shows the pages; menus is usually 2). Popups such as Settings › Graphics › Advanced Settings live in the notifications view (usually 3): views not reloaded keep running the old script until a sim restart.
 - `window.uiMenuScale.set(d)` / `set(null)` changes or clears the density live.
 - If port 19999 times out with the sim closed, an orphan `TechLogStarter.exe` may still hold it.
 - Check menus, world map, notifications and the Settings line, with and without SimpleUI.

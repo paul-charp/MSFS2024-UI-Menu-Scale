@@ -4,7 +4,7 @@
 
 - Menu Scale line translated in every sim language.
 - Separator line above the Menu Scale line, none under it.
-- Less main-thread work while hovering menu lines.
+- Less main-thread work while hovering menu lines; no more stutter in Settings › Graphics › Advanced Settings.
 
 ## 0.1.0
 

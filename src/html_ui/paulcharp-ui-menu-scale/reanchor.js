@@ -303,7 +303,9 @@
     // Elements not laid out yet (hidden pages: hundreds in the menus view), each with its highest
     // ancestor that has no box (display: none, unlike a 0 px wrapper). Each DOM call costs about 1 us
     // in Coherent: a retry pass checks one box per hidden ancestor, and the elements' own rects only
-    // once it shows.
+    // once it shows. Roots are checked by box, not style: after a hover, the first rect read only runs
+    // the frame's layout early, while reading a hidden root's computed style resolves the styles of
+    // its hidden subtree: about 14 ms per frame in the graphics settings popup.
     var retry = new Map();
     function laidOut(e) { var r = e.getBoundingClientRect(); return !!(r.width || r.height); }
     function hasBox(e) { return e.getClientRects().length > 0; }
