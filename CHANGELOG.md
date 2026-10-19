@@ -1,10 +1,10 @@
 # Changelog
 
-## Unreleased
+## 0.2.0
 
-- Menu Scale line translated in every sim language.
-- Separator line above the Menu Scale line, none under it.
-- Less main-thread work while hovering menu lines; no more stutter in Settings › Graphics › Advanced Settings.
+- **No more stutters** when hovering menu lines, Settings › Graphics › Advanced Settings included. Menu navigation is much smoother and more responsive.
+- Menu Scale line in the sim's language (18 languages, English otherwise).
+- Divider above the Menu Scale line, like the stock lines.
 
 ## 0.1.0
 

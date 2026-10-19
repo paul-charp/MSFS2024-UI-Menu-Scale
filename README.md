@@ -29,6 +29,7 @@ To uninstall, delete the `paulcharp-ui-menu-scale` folder.
 - Drag or click the bar, use the mouse wheel, or Left / Right while the mouse is over it. The menus redraw when you release.
 - The value shows the scale you get on your screen (e.g. 1.5x on 4K).
 - Your choice is saved by the sim and kept across restarts.
+- The line is labelled in the sim's language (all 18 interface languages).
 
 ![The Menu Scale line in Settings](docs/images/settings-slider.jpg)
 
@@ -54,7 +55,7 @@ The default is in `Community/paulcharp-ui-menu-scale/html_ui/paulcharp-ui-menu-s
 
 ## Known limits
 
-- The Menu Scale line works with the mouse only (no gamepad focus), and its label is in English.
+- The Menu Scale line works with the mouse only (no gamepad focus).
 - The layout is spread back to the screen edges by a heuristic; an unusual page may look off. Please report it with a screenshot.
 
 ## Build from source
