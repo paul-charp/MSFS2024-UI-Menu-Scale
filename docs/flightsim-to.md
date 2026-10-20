@@ -36,9 +36,10 @@ https://github.com/paul-charp/MSFS2024-UI-Menu-Scale
 
 ## Images (upload order)
 
-1. `docs/images/compare-world-map.jpg` (cover)
-2. `docs/images/compare-controls.jpg`
-3. `docs/images/compare-settings.jpg`
-4. `docs/images/world-map-mod.jpg`
-5. `docs/images/controls-mod.jpg`
-6. `docs/images/settings-slider.jpg`
+1. `docs/images/cover.jpg` (cover, 1920x1080: `python docs/render_cover.py`)
+2. `docs/images/compare-world-map.jpg`
+3. `docs/images/compare-controls.jpg`
+4. `docs/images/compare-settings.jpg`
+5. `docs/images/world-map-mod.jpg`
+6. `docs/images/controls-mod.jpg`
+7. `docs/images/settings-slider.jpg`
